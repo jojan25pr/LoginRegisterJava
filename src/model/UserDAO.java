@@ -41,19 +41,26 @@ public class UserDAO {
         }
     }
     
-    public boolean authenticateUser(String username, String password) {
+    public boolean authenticateUser(String username, String hashedPassword) {
         try {
-            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+            String query = "SELECT password FROM users WHERE username = ?";
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, username);
-            ps.setString(2, password);
             ResultSet rs = ps.executeQuery();
-            return rs.next();
+
+            if (rs.next()) {
+                String storedHashedPassword = rs.getString("password");
+                // Compara el hash de la contraseña ingresada con el hash almacenado
+                return storedHashedPassword.equals(hashedPassword);
+            } else {
+                return false; // Usuario no encontrado
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
+        return false;
         }
     }
+
 }
 
 

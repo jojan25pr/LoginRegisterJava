@@ -6,6 +6,8 @@ package controller;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import javax.swing.JOptionPane;
 import model.User;
 import model.UserDAO;
@@ -37,6 +39,8 @@ public class RegisterController {
             }
         });
     }
+    
+    
 
     private void registerUser() {
         String fullName = view.getFullName();
@@ -49,17 +53,33 @@ public class RegisterController {
             JOptionPane.showMessageDialog(view, "Passwords do not match!");
             return;
         }
+        
+        String encryptedPassword = hashPassword(password);
 
         User user = new User();
         user.setFullName(fullName);
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(encryptedPassword);
         user.setPhone(phone);
 
         if (model.registerUser(user)) {
             JOptionPane.showMessageDialog(view, "User registered successfully!");
         } else {
             JOptionPane.showMessageDialog(view, "Failed to register user.");
+        }
+    }
+    
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Hashing algorithm not found", e);
         }
     }
 }

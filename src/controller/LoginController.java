@@ -6,6 +6,8 @@ package controller;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import javax.swing.JOptionPane;
 import model.UserDAO;
 import view.LoginForm;
@@ -41,12 +43,30 @@ public class LoginController {
         String username = view.getUsername();
         String password = view.getPassword();
 
-        if (model.authenticateUser(username, password)) {
+        // Encriptar la contraseña ingresada
+        String hashedPassword = hashPassword(password);
+
+        if (model.authenticateUser(username, hashedPassword)) {
             JOptionPane.showMessageDialog(view, "Access granted!");
         } else {
             JOptionPane.showMessageDialog(view, "Invalid username or password.");
         }
     }
+    
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Hashing algorithm not found", e);
+        }
+    }
+    
 }
 
 
